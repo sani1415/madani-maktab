@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>মাদানী মক্তব — বাংলা হরফ লিখি</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --green:#1a7a5e;--green-light:#e8f5f0;--gold:#f5c518;
+    --bg:#f9fdf9;--white:#fff;--text:#1a2e1a;--text-sub:#5a7a5a;
+    --border:#d4e8d4;--shadow:0 2px 12px rgba(26,122,94,0.1);
+  }
+  body{font-family:'Hind Siliguri',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:16px}
+  .app{max-width:500px;margin:0 auto}
+  .header{background:linear-gradient(135deg,#1a7a5e,#0f5c45);border-radius:16px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(26,122,94,0.3)}
+  .header .name{font-size:20px;font-weight:700;color:#fff}
+  .header .sub{font-size:13px;color:rgba(255,255,255,.7);margin-top:2px}
+  .stars{font-size:20px;color:var(--gold);letter-spacing:2px}
+  .voice-bar{display:flex;align-items:center;gap:8px;background:var(--white);border-radius:10px;padding:8px 12px;margin-bottom:10px;border:1px solid var(--border);box-shadow:var(--shadow)}
+  .voice-bar label{font-size:12px;color:var(--text-sub);white-space:nowrap;font-weight:500}
+  .voice-bar select{flex:1;border:none;background:transparent;font-size:13px;color:var(--text);font-family:'Hind Siliguri',sans-serif;cursor:pointer;outline:none}
+  .sec-label{font-size:11px;font-weight:600;color:var(--text-sub);margin:8px 0 5px;text-transform:uppercase;letter-spacing:.8px}
+  .picker{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px}
+  .lbtn{width:36px;height:36px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;font-size:19px;color:var(--text);display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:'Hind Siliguri',sans-serif}
+  .lbtn:hover{border-color:var(--green);background:var(--green-light);transform:translateY(-1px)}
+  .lbtn.on{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 2px 8px rgba(26,122,94,.4)}
+  .lbtn.done{border-color:var(--green);background:var(--green-light);position:relative}
+  .lbtn.done::after{content:'✓';position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--green);color:#fff;border-radius:50%;font-size:8px;line-height:14px;text-align:center}
+  .word-card{display:flex;align-items:center;gap:14px;background:var(--white);border-radius:14px;padding:14px 16px;margin:10px 0 8px;border:1px solid var(--border);box-shadow:var(--shadow)}
+  .word-emoji{font-size:52px;line-height:1;min-width:60px;text-align:center}
+  .word-info{flex:1}
+  .word-horf{font-size:30px;color:var(--green);font-weight:700;line-height:1}
+  .word-name{font-size:22px;font-weight:600;color:var(--text);margin-top:2px}
+  .word-eg{font-size:13px;color:var(--text-sub);margin-top:3px}
+  .speak-btn{width:42px;height:42px;border-radius:50%;background:var(--green);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:all .2s;box-shadow:0 2px 8px rgba(26,122,94,.3);position:relative;overflow:hidden}
+  .speak-btn:hover{transform:scale(1.1)}
+  .speak-btn.loading{background:#aaa;cursor:wait}
+  .speak-btn.loading span{display:none}
+  .speak-btn.loading::after{content:'';position:absolute;width:18px;height:18px;border:2.5px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .status{font-size:12px;text-align:center;padding:5px 10px;border-radius:8px;min-height:22px;margin-bottom:8px;transition:all .3s}
+  .status.ok{color:var(--green);background:var(--green-light)}
+  .status.err{color:#c0392b;background:#fdecea}
+  .status.info{color:var(--text-sub);background:#f5f5f5}
+  .canvas-wrap{position:relative;border-radius:14px;border:1.5px solid var(--border);background:#fffef8;overflow:hidden;touch-action:none;margin-bottom:10px;box-shadow:inset 0 2px 8px rgba(0,0,0,.04)}
+  .canvas-wrap canvas{display:block;touch-action:none}
+  .draw-canvas{position:absolute;top:0;left:0}
+  .confetti-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden}
+  .hint{font-size:13px;color:var(--text-sub);text-align:center;min-height:20px;margin-bottom:10px;font-weight:500}
+  .controls{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+  .prog-wrap{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+  .prog-fill{height:8px;background:linear-gradient(90deg,var(--green),#2ecc71);border-radius:4px;width:0%;transition:width .3s}
+  .ctrl-btn{padding:8px 18px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);color:var(--text);cursor:pointer;font-size:13px;font-family:'Hind Siliguri',sans-serif;font-weight:500;transition:all .15s}
+  .ctrl-btn:hover{border-color:var(--green);background:var(--green-light)}
+  .ctrl-btn.green{background:var(--green);border-color:var(--green);color:#fff}
+  .score-row{display:flex;gap:8px}
+  .sc{background:var(--white);border-radius:10px;padding:8px;text-align:center;flex:1;border:1px solid var(--border);box-shadow:var(--shadow)}
+  .sc-n{font-size:20px;font-weight:700;color:var(--text)}
+  .sc-l{font-size:10px;color:var(--text-sub);margin-top:1px}
+  @keyframes fall{0%{top:-8%;opacity:1;transform:rotate(0)}100%{top:108%;opacity:.7;transform:rotate(540deg)}}
+  @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+  .pop{animation:pop .5s ease}
+  .footer{text-align:center;margin-top:20px;font-size:12px;color:var(--text-sub);opacity:.6}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <div class="name">মাদানী মক্তব</div>
+      <div class="sub">বাংলা হরফ শিক্ষা</div>
+    </div>
+    <div class="stars" id="starDisp">☆☆☆☆☆</div>
+  </div>
+
+  <!-- Voice Selector -->
+  <div class="voice-bar">
+    <label>🎙 কণ্ঠ:</label>
+    <select id="voiceSelect" onchange="onVoiceChange()">
+      <optgroup label="মহিলা কণ্ঠ">
+        <option value="cgSgspJ2msm6clMCkdW9">Jessica — তরুণ, প্রাণবন্ত ✨</option>
+        <option value="FGY2WhTYpPnrIDTdsKH5">Laura — উষ্ণ, উৎসাহী</option>
+        <option value="Xb7hH8MSUJpSbSDYk0k2">Alice — স্পষ্ট, শিক্ষামূলক</option>
+        <option value="EXAVITQu4vr4xnSDxMaL">Sarah — নরম</option>
+        <option value="XrExE9yKIg1WjnnlVkGX">Matilda — বন্ধুত্বপূর্ণ</option>
+        <option value="pFZP5JQG7iQjIQuC4Bku">Lily — উষ্ণ, বর্ণনা</option>
+        <option value="NOpBlnGInO9m6vDvFkFC">Arabella — v3 অপ্টিমাইজড 🆕</option>
+      </optgroup>
+      <optgroup label="পুরুষ কণ্ঠ">
+        <option value="nPczCjzI2devNBz1zQrb">Brian — গভীর, বর্ণনা</option>
+        <option value="pqHfZKP75CvOlQylNhV4">Bill — বিশ্বস্ত, পরিপক্ক</option>
+        <option value="JBFqnCBsd6RMkjVDRZzb">George — উষ্ণ</option>
+        <option value="onwK4e9ZLuTAKqWW03F9">Daniel — কর্তৃত্বপূর্ণ</option>
+        <option value="IKne3meq5aSn9XLyUdCD">Charlie — স্বাভাবিক</option>
+        <option value="cjVigY5qzO86Huf0OWal">Eric — বন্ধুত্বপূর্ণ</option>
+      </optgroup>
+      <optgroup label="কাস্টম কণ্ঠ">
+        <option value="custom">কাস্টম Voice ID (clone করা)...</option>
+      </optgroup>
+    </select>
+    <button onclick="testVoice()" style="padding:4px 10px;border-radius:12px;border:1px solid var(--border);background:var(--green-light);cursor:pointer;font-size:12px;color:var(--green)">▶ টেস্ট</button>
+  </div>
+
+  <div id="customVoiceWrap" style="display:none;margin-bottom:8px">
+    <input id="customVoiceId" type="text" placeholder="ElevenLabs Voice ID এখানে লিখুন..."
+      style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;font-family:'Hind Siliguri',sans-serif;outline:none">
+  </div>
+
+  <div class="sec-label">স্বরবর্ণ</div>
+  <div class="picker" id="picker-swar"></div>
+  <div class="sec-label">ব্যঞ্জনবর্ণ</div>
+  <div class="picker" id="picker-byan"></div>
+
+  <div class="word-card">
+    <div class="word-emoji" id="wEmoji">📖</div>
+    <div class="word-info">
+      <div class="word-horf" id="wHorf">ক</div>
+      <div class="word-name" id="wName">কুরআন</div>
+      <div class="word-eg" id="wEg">ক দিয়ে কুরআন</div>
+    </div>
+    <button class="speak-btn" id="speakBtn" onclick="speakWord()"><span>🔊</span></button>
+  </div>
+
+  <div class="status info" id="statusBar">🔊 বাটনে চাপলে ElevenLabs কণ্ঠ শোনা যাবে</div>
+
+  <div class="canvas-wrap" id="canvasWrap">
+    <canvas id="guideCanvas"></canvas>
+    <canvas id="drawCanvas" class="draw-canvas"></canvas>
+    <div class="confetti-layer" id="confettiLayer"></div>
+  </div>
+
+  <div class="hint" id="hint">একটু অপেক্ষা করো...</div>
+
+  <div class="controls">
+    <div class="prog-wrap"><div class="prog-fill" id="progFill"></div></div>
+    <button class="ctrl-btn" onclick="doReset()">🗑 মুছি</button>
+    <button class="ctrl-btn green" onclick="doHint()">👁 দেখাও</button>
+  </div>
+
+  <div class="score-row">
+    <div class="sc"><div class="sc-n" id="sDone">০</div><div class="sc-l">সম্পন্ন</div></div>
+    <div class="sc"><div class="sc-n" id="sStar">০</div><div class="sc-l">তারকা ⭐</div></div>
+    <div class="sc"><div class="sc-n" id="sStreak">০</div><div class="sc-l">ধারা 🔥</div></div>
+    <div class="sc"><div class="sc-n" id="sPct">—</div><div class="sc-l">নির্ভুলতা</div></div>
+  </div>
+  <div class="footer">মাদানী মক্তব • ElevenLabs বাংলা TTS</div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────
+const TTS_URL = '/api/tts';
+const CW = 420, CH = 240, DPR = window.devicePixelRatio || 1;
+const DOT_R = 3, HIT_R = 14;
+
+// ── VOICE ───────────────────────────────
+function getVoiceId() {
+  const sel = document.getElementById('voiceSelect').value;
+  if (sel === 'custom') return document.getElementById('customVoiceId').value.trim();
+  return sel;
+}
+function onVoiceChange() {
+  const sel = document.getElementById('voiceSelect').value;
+  document.getElementById('customVoiceWrap').style.display = sel === 'custom' ? 'block' : 'none';
+  audioCache = {}; // clear cache on voice change
+}
+function testVoice() {
+  speakText('আমি মাদানী মক্তবের কণ্ঠস্বর। বাংলা হরফ শিখবে আমার সাথে।');
+}
+
+// ── TTS ─────────────────────────────────
+let audioCache = {};
+let currentAudio = null;
+
+function setStatus(msg, type='info') {
+  const el = document.getElementById('statusBar');
+  el.textContent = msg; el.className = 'status ' + type;
+}
+
+async function speakText(text) {
+  const voiceId = getVoiceId();
+  if (!voiceId) { setStatus('❌ Voice ID দিন', 'err'); return; }
+  const cacheKey = voiceId + '|' + text;
+  const btn = document.getElementById('speakBtn');
+  if (btn.classList.contains('loading')) return;
+  btn.classList.add('loading');
+  setStatus('⏳ লোড হচ্ছে...', 'info');
+  try {
+    if (!audioCache[cacheKey]) {
+      const res = await fetch(TTS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voiceId, text })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || err?.detail?.message || `HTTP ${res.status}`);
+      }
+      const blob = await res.blob();
+      audioCache[cacheKey] = URL.createObjectURL(blob);
+    }
+    if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
+    currentAudio = new Audio(audioCache[cacheKey]);
+    await currentAudio.play();
+    setStatus('✅ ElevenLabs — সফল!', 'ok');
+  } catch(e) {
+    console.error(e);
+    setStatus('❌ ' + e.message, 'err');
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'bn-BD'; u.rate = 0.85; speechSynthesis.speak(u);
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
+
+function speakWord() {
+  const letter = ALL[curIdx];
+  const w = WORDS[letter];
+  speakText(w ? w[2] : letter);
+}
+
+// ── DATA ─────────────────────────────────
+const WORDS = {
+  'অ':['অতিথি','🏠','অ দিয়ে অতিথি — সদকা'],
+  'আ':['আল্লাহ','🤲','আ দিয়ে আল্লাহ'],
+  'ই':['ইমান','✨','ই দিয়ে ইমান'],
+  'ঈ':['ঈদ','🎉','ঈ দিয়ে ঈদ'],
+  'উ':['উমরাহ','🕋','উ দিয়ে উমরাহ'],
+  'ঊ':['ঊষা','🌅','ঊ দিয়ে ঊষা — ফজরের সময়'],
+  'ঋ':['ঋতু','🍂','ঋ দিয়ে ঋতু — আল্লাহর সৃষ্টি'],
+  'এ':['এহসান','💚','এ দিয়ে এহসান'],
+  'ঐ':['ঐক্য','🤝','ঐ দিয়ে ঐক্য — মুসলিম ভাই'],
+  'ও':['ওজু','💧','ও দিয়ে ওজু'],
+  'ঔ':['ঔদার্য','🎁','ঔ দিয়ে ঔদার্য — সদকা'],
+  'ক':['কুরআন','📖','ক দিয়ে কুরআন'],
+  'খ':['খেজুর','🌴','খ দিয়ে খেজুর'],
+  'গ':['গোলাম','🤲','গ দিয়ে গোলাম — আল্লাহর বান্দা'],
+  'ঘ':['ঘর','🏠','ঘ দিয়ে ঘর — মসজিদ'],
+  'ঙ':['বাংলা','🇧🇩','ঙ দিয়ে বাংলা'],
+  'চ':['চাঁদ','🌙','চ দিয়ে চাঁদ — রমজান'],
+  'ছ':['ছাত্র','📖','ছ দিয়ে ছাত্র — মাদরাসা'],
+  'জ':['জান্নাত','🌸','জ দিয়ে জান্নাত'],
+  'ঝ':['ঝিলিম','✨','ঝ দিয়ে ঝিলিম — আল্লাহর নূর'],
+  'ঞ':['মিঞা','👳','ঞ দিয়ে মিঞা — আদব'],
+  'ট':['টুপি','🧢','ট দিয়ে টুপি — সুন্নাত'],
+  'ঠ':['ঠাণ্ডা','💧','ঠ দিয়ে ঠাণ্ডা — ওজুর পানি'],
+  'ড':['ডাল','🍃','ড দিয়ে ডাল — আল্লাহর সৃষ্টি'],
+  'ঢ':['ঢোল','🥁','ঢ দিয়ে ঢোল — ঈদ'],
+  'ণ':['মণি','💎','ণ দিয়ে মণি — জান্নাত'],
+  'ত':['তাওবা','🤲','ত দিয়ে তাওবা'],
+  'থ':['থালা','🍽️','থ দিয়ে থালা — ইফতার'],
+  'দ':['দোয়া','🤲','দ দিয়ে দোয়া'],
+  'ধ':['ধৈর্য','🌿','ধ দিয়ে ধৈর্য — সবর'],
+  'ন':['নামাজ','🕌','ন দিয়ে নামাজ'],
+  'প':['পবিত্র','✨','প দিয়ে পবিত্র — কুরআন'],
+  'ফ':['ফজর','🌅','ফ দিয়ে ফজর'],
+  'ব':['বই','📚','ব দিয়ে বই — কুরআন'],
+  'ভ':['ভালো','💚','ভ দিয়ে ভালো — আমল'],
+  'ম':['মসজিদ','🕌','ম দিয়ে মসজিদ'],
+  'য':['যিকির','📿','য দিয়ে যিকির'],
+  'র':['রোজা','🌙','র দিয়ে রোজা'],
+  'ল':['লাভ','💚','ল দিয়ে লাভ — হালাল'],
+  'শ':['শুকর','🤲','শ দিয়ে শুকর — আলহামদুলিল্লাহ'],
+  'ষ':['ষষ্ঠ','🕌','ষ দিয়ে ষষ্ঠ — রমজান'],
+  'স':['সূর্য','☀️','স দিয়ে সূর্য — আল্লাহর সৃষ্টি'],
+  'হ':['হজ','🕋','হ দিয়ে হজ'],
+  'ড়':['গড়া','🏗️','ড় দিয়ে গড়া — মসজিদ'],
+  'ঢ়':['ঢাকা','🏙️','ঢ় দিয়ে ঢাকা — বাংলাদেশ'],
+  'য়':['নয়','🔢','য় দিয়ে নয় — সুন্নাত'],
+  'ৎ':['বাৎসরিক','📅','ৎ দিয়ে বাৎসরিক — হিজরি'],
+  'ং':['রং','🎨','ং দিয়ে রং — ঈদ'],
+  'ঃ':['দুঃখ','😢','ঃ দিয়ে দুঃখ — সবর'],
+  'ঁ':['চাঁদ','🌙','ঁ দিয়ে চাঁদ — রমজান'],
+};
+const SWAR=['অ','আ','ই','ঈ','উ','ঊ','ঋ','এ','ঐ','ও','ঔ'];
+const BYAN=['ক','খ','গ','ঘ','ঙ','চ','ছ','জ','ঝ','ঞ','ট','ঠ','ড','ঢ','ণ','ত','থ','দ','ধ','ন','প','ফ','ব','ভ','ম','য','র','ল','শ','ষ','স','হ','ড়','ঢ়','য়','ৎ','ং','ঃ','ঁ'];
+const ALL=[...SWAR,...BYAN];
+
+// ── CANVAS ──────────────────────────────
+const gc=document.getElementById('guideCanvas'),dc=document.getElementById('drawCanvas');
+const gx=gc.getContext('2d'),dx=dc.getContext('2d');
+function setupC(c){c.width=CW*DPR;c.height=CH*DPR;c.style.width=CW+'px';c.style.height=CH+'px';c.getContext('2d').scale(DPR,DPR);}
+setupC(gc);setupC(dc);
+document.getElementById('canvasWrap').style.width=CW+'px';
+document.getElementById('canvasWrap').style.height=CH+'px';
+
+// ── SKELETON ────────────────────────────
+function buildDots(letter){
+  const sc=4,W=CW*sc,H=CH*sc;
+  const off=document.createElement('canvas');off.width=W;off.height=H;
+  const ctx=off.getContext('2d');
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#000';
+  ctx.font=`${150*sc}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(letter,W/2,H/2);
+  const data=ctx.getImageData(0,0,W,H).data;
+  const g=new Uint8Array(W*H);
+  for(let i=0;i<W*H;i++)g[i]=data[i*4+3]>60?1:0;
+  const get=(x,y)=>(x<0||y<0||x>=W||y>=H)?0:g[y*W+x];
+  const ns=(x,y)=>[get(x,y-1),get(x+1,y-1),get(x+1,y),get(x+1,y+1),get(x,y+1),get(x-1,y+1),get(x-1,y),get(x-1,y-1)];
+  const tr=n=>{let c=0;for(let i=0;i<8;i++)if(n[i]===0&&n[(i+1)%8]===1)c++;return c;};
+  const sm=n=>n.reduce((a,b)=>a+b,0);
+  let changed=true,iter=0;
+  while(changed&&iter<100){iter++;changed=false;
+    for(let step=0;step<2;step++){const rem=[];
+      for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){
+        if(!g[y*W+x])continue;const n=ns(x,y),s=sm(n);
+        if(s<2||s>6||tr(n)!==1)continue;
+        if(step===0){if(n[0]*n[2]*n[4]!==0||n[2]*n[4]*n[6]!==0)continue;}
+        else{if(n[0]*n[2]*n[6]!==0||n[0]*n[4]*n[6]!==0)continue;}
+        rem.push(y*W+x);}
+      rem.forEach(i=>{g[i]=0;changed=true;});}}
+  const MD=7*sc,result=[];
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    if(!g[y*W+x])continue;
+    const mx=Math.round(x/sc),my=Math.round(y/sc);
+    let close=false;
+    for(const[rx,ry]of result){if(Math.hypot(mx-rx,my-ry)<MD/sc){close=true;break;}}
+    if(!close)result.push([mx,my]);}
+  return result;
+}
+
+// ── STATE ───────────────────────────────
+let curIdx=0,dots=[],hitSet=new Set(),drawing=false,celebrating=false;
+let totalDone=0,totalStars=0,streak=0;
+
+// ── PICKERS ─────────────────────────────
+function buildPicker(id,arr,offset){
+  const p=document.getElementById(id);
+  arr.forEach((lt,i)=>{
+    const gi=offset+i,b=document.createElement('button');
+    b.className='lbtn'+(gi===0?' on':'');b.id='lb'+gi;b.textContent=lt;
+    b.onclick=()=>selectLetter(gi,b);p.appendChild(b);});
+}
+buildPicker('picker-swar',SWAR,0);
+buildPicker('picker-byan',BYAN,SWAR.length);
+
+function updateWordCard(letter){
+  const w=WORDS[letter]||[letter,'📝',letter+' দিয়ে শব্দ'];
+  document.getElementById('wEmoji').textContent=w[1];
+  document.getElementById('wHorf').textContent=letter;
+  document.getElementById('wName').textContent=w[0];
+  document.getElementById('wEg').textContent=w[2];
+  const em=document.getElementById('wEmoji');
+  em.classList.remove('pop');void em.offsetWidth;em.classList.add('pop');
+}
+
+// ── DRAW ────────────────────────────────
+function drawGuide(){
+  gx.clearRect(0,0,CW,CH);
+  dots.forEach(([x,y],i)=>{
+    const hit=hitSet.has(i);
+    gx.beginPath();gx.arc(x,y,hit?DOT_R+0.6:DOT_R,0,Math.PI*2);
+    gx.fillStyle=hit?'#1a7a5e':'rgba(26,122,94,0.35)';gx.fill();});
+  if(!dots.length)return;
+  const pct=Math.round(hitSet.size/dots.length*100);
+  document.getElementById('progFill').style.width=pct+'%';
+  const rem=dots.length-hitSet.size;
+  if(pct>=100&&!celebrating){celebrating=true;celebrate();}
+  else if(!celebrating) document.getElementById('hint').textContent=rem>0?`আরো ${rem} টি ডট বাকি`:'শেষ ধাপে!';
+}
+function getPos(e,c){const r=c.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return[s.clientX-r.left,s.clientY-r.top];}
+function checkHits(x,y){let ch=false;dots.forEach(([a,b],i)=>{if(!hitSet.has(i)&&Math.hypot(x-a,y-b)<HIT_R){hitSet.add(i);ch=true;}});if(ch)drawGuide();}
+function onStart(e){if(celebrating)return;e.preventDefault();drawing=true;const[x,y]=getPos(e,dc);dx.beginPath();dx.moveTo(x,y);checkHits(x,y);}
+function onMove(e){if(!drawing||celebrating)return;e.preventDefault();const[x,y]=getPos(e,dc);dx.lineTo(x,y);dx.strokeStyle='rgba(26,122,94,0.15)';dx.lineWidth=2;dx.lineCap='round';dx.lineJoin='round';dx.stroke();checkHits(x,y);}
+function onEnd(){drawing=false;}
+dc.addEventListener('mousedown',onStart);dc.addEventListener('mousemove',onMove);dc.addEventListener('mouseup',onEnd);dc.addEventListener('mouseleave',onEnd);
+dc.addEventListener('touchstart',onStart,{passive:false});dc.addEventListener('touchmove',onMove,{passive:false});dc.addEventListener('touchend',onEnd,{passive:false});
+
+// ── CELEBRATE ───────────────────────────
+async function celebrate(){
+  const letter=ALL[curIdx],w=WORDS[letter];
+  const conf=document.getElementById('confettiLayer');conf.innerHTML='';
+  const cols=['#1a7a5e','#f5c518','#e84393','#378add','#ff6b35','#9b59b6','#e74c3c','#2ecc71'];
+  for(let i=0;i<80;i++){
+    const el=document.createElement('div');
+    const sz=Math.random()*10+5,dur=(Math.random()*1.8+1).toFixed(2),del=(Math.random()*.9).toFixed(2);
+    el.style.cssText=`position:absolute;left:${Math.random()*100}%;top:-10px;width:${sz}px;height:${sz}px;background:${cols[i%cols.length]};border-radius:${Math.random()>.5?'50%':'3px'};animation:fall ${dur}s linear ${del}s forwards`;
+    conf.appendChild(el);}
+  document.getElementById('hint').textContent=`মাশাআল্লাহ! ${letter} = ${w?w[0]:''}`;
+  await speakText(`মাশাআল্লাহ! তুমি ${letter} লিখেছো! ${w?w[2]:''}`);
+  document.getElementById('lb'+curIdx)?.classList.add('done');
+  totalDone++;streak++;totalStars+=streak>=3?4:3;
+  const f=Math.min(5,Math.floor(totalStars/Math.max(totalDone,1)));
+  document.getElementById('starDisp').textContent='★'.repeat(f)+'☆'.repeat(5-f);
+  document.getElementById('sDone').textContent=totalDone;
+  document.getElementById('sStar').textContent=totalStars;
+  document.getElementById('sStreak').textContent=streak+'🔥';
+  document.getElementById('sPct').textContent='১০০%';
+  setTimeout(()=>{conf.innerHTML='';},4000);
+}
+
+// ── CONTROLS ────────────────────────────
+function selectLetter(i,btn){
+  curIdx=i;document.querySelectorAll('.lbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');updateWordCard(ALL[i]);doReset();
+  setTimeout(()=>speakWord(),500);
+}
+function doReset(){
+  celebrating=false;drawing=false;hitSet=new Set();
+  dx.clearRect(0,0,CW,CH);document.getElementById('progFill').style.width='0%';
+  document.getElementById('confettiLayer').innerHTML='';
+  document.getElementById('hint').textContent='হরফ তৈরি হচ্ছে...';
+  setTimeout(()=>{dots=buildDots(ALL[curIdx]);drawGuide();document.getElementById('hint').textContent='কলম দিয়ে ডটের উপর থেকে শুরু করো';},80);
+}
+function doHint(){
+  gx.clearRect(0,0,CW,CH);
+  dots.forEach(([x,y])=>{gx.beginPath();gx.arc(x,y,DOT_R+1.5,0,Math.PI*2);gx.fillStyle='rgba(26,122,94,0.65)';gx.fill();});
+  document.getElementById('hint').textContent='এভাবেই লিখতে হয় — এখন নিজে চেষ্টা করো';
+  setTimeout(doReset,2200);
+}
+
+// ── INIT ────────────────────────────────
+updateWordCard(ALL[0]);
+doReset();
+setTimeout(()=>speakWord(),1000);
+</script>
+</body>
+</html>
