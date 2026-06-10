@@ -28,12 +28,21 @@
   .lbtn.on{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 2px 8px rgba(26,122,94,.4)}
   .lbtn.done{border-color:var(--green);background:var(--green-light);position:relative}
   .lbtn.done::after{content:'✓';position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--green);color:#fff;border-radius:50%;font-size:8px;line-height:14px;text-align:center}
-  .word-card{display:flex;align-items:center;gap:14px;background:var(--white);border-radius:14px;padding:14px 16px;margin:10px 0 8px;border:1px solid var(--border);box-shadow:var(--shadow)}
-  .word-emoji{font-size:52px;line-height:1;min-width:60px;text-align:center}
+  .word-card{display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--white);border-radius:14px;padding:14px 16px;margin:10px 0 8px;border:1px solid var(--border);box-shadow:var(--shadow)}
   .word-info{flex:1}
-  .word-horf{font-size:30px;color:var(--green);font-weight:700;line-height:1}
-  .word-name{font-size:22px;font-weight:600;color:var(--text);margin-top:2px}
-  .word-eg{font-size:13px;color:var(--text-sub);margin-top:3px}
+  .word-horf{font-size:36px;color:var(--green);font-weight:700;line-height:1}
+  .word-sub{font-size:13px;color:var(--text-sub);margin-top:4px}
+  .word-popup-layer{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;visibility:hidden}
+  .word-popup-layer.show{opacity:1;visibility:visible}
+  .float-emoji{position:fixed;left:50%;top:22%;font-size:88px;line-height:1;transform:translate(-50%,0);opacity:0;filter:drop-shadow(0 8px 20px rgba(26,122,94,.25));z-index:1002}
+  .word-popup-layer.show .float-emoji{animation:floatEmoji 2.8s ease forwards}
+  .word-popup{background:rgba(255,255,255,.98);border-radius:22px;padding:22px 36px;text-align:center;box-shadow:0 16px 48px rgba(26,122,94,.28);border:2px solid var(--green-light);z-index:1001;opacity:0;transform:scale(.5) translateY(24px)}
+  .word-popup-layer.show .word-popup{animation:popupWord 2.8s ease forwards}
+  .popup-horf{font-size:42px;color:var(--green);font-weight:700;line-height:1}
+  .popup-word{font-size:32px;font-weight:700;color:var(--text);margin-top:8px}
+  .popup-eg{font-size:15px;color:var(--text-sub);margin-top:6px}
+  @keyframes floatEmoji{0%{opacity:0;transform:translate(-50%,80px) scale(.35)}18%{opacity:1;transform:translate(-50%,-10px) scale(1.25)}38%{transform:translate(-50%,-28px) scale(1)}72%{opacity:1;transform:translate(-50%,-36px) scale(1.05)}100%{opacity:0;transform:translate(-50%,-70px) scale(.75)}}
+  @keyframes popupWord{0%{opacity:0;transform:scale(.45) translateY(30px)}14%{opacity:1;transform:scale(1.06) translateY(0)}24%{transform:scale(1) translateY(0)}78%{opacity:1;transform:scale(1) translateY(0)}100%{opacity:0;transform:scale(.92) translateY(-12px)}}
   .speak-btn{width:42px;height:42px;border-radius:50%;background:var(--green);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:all .2s;box-shadow:0 2px 8px rgba(26,122,94,.3);position:relative;overflow:hidden}
   .speak-btn:hover{transform:scale(1.1)}
   .speak-btn.loading{background:#aaa;cursor:wait}
@@ -114,13 +123,20 @@
   <div class="picker" id="picker-byan"></div>
 
   <div class="word-card">
-    <div class="word-emoji" id="wEmoji">📖</div>
     <div class="word-info">
       <div class="word-horf" id="wHorf">ক</div>
-      <div class="word-name" id="wName">কুরআন</div>
-      <div class="word-eg" id="wEg">ক দিয়ে কুরআন</div>
+      <div class="word-sub">হরফ বেছে নাও — শব্দ পপআপ হবে</div>
     </div>
     <button class="speak-btn" id="speakBtn" onclick="speakWord()"><span>🔊</span></button>
+  </div>
+
+  <div class="word-popup-layer" id="wordPopupLayer" aria-hidden="true">
+    <div class="float-emoji" id="floatEmoji"></div>
+    <div class="word-popup">
+      <div class="popup-horf" id="popupHorf"></div>
+      <div class="popup-word" id="popupWord"></div>
+      <div class="popup-eg" id="popupEg"></div>
+    </div>
   </div>
 
   <div class="status info" id="statusBar">🔊 বাটনে চাপলে ElevenLabs কণ্ঠ শোনা যাবে</div>
@@ -322,7 +338,7 @@ function buildDots(letter){
 
 // ── STATE ───────────────────────────────
 let curIdx=0,dots=[],hitSet=new Set(),drawing=false,celebrating=false;
-let totalDone=0,totalStars=0,streak=0;
+let totalDone=0,totalStars=0,streak=0,popupTimer=null;
 
 // ── PICKERS ─────────────────────────────
 function buildPicker(id,arr,offset){
@@ -335,14 +351,28 @@ function buildPicker(id,arr,offset){
 buildPicker('picker-swar',SWAR,0);
 buildPicker('picker-byan',BYAN,SWAR.length);
 
-function updateWordCard(letter){
+function showWordPopup(letter){
   const w=WORDS[letter]||[letter,'📝',letter+' দিয়ে শব্দ'];
-  document.getElementById('wEmoji').textContent=w[1];
+  const layer=document.getElementById('wordPopupLayer');
+  document.getElementById('popupHorf').textContent=letter;
+  document.getElementById('popupWord').textContent=w[0];
+  document.getElementById('popupEg').textContent=w[2];
+  const em=document.getElementById('floatEmoji');
+  em.textContent=w[1];
+  if(popupTimer)clearTimeout(popupTimer);
+  layer.classList.remove('show');
+  void layer.offsetWidth;
+  layer.classList.add('show');
+  layer.setAttribute('aria-hidden','false');
+  popupTimer=setTimeout(()=>{
+    layer.classList.remove('show');
+    layer.setAttribute('aria-hidden','true');
+  },2800);
+}
+
+function updateWordCard(letter){
   document.getElementById('wHorf').textContent=letter;
-  document.getElementById('wName').textContent=w[0];
-  document.getElementById('wEg').textContent=w[2];
-  const em=document.getElementById('wEmoji');
-  em.classList.remove('pop');void em.offsetWidth;em.classList.add('pop');
+  showWordPopup(letter);
 }
 
 // ── DRAW ────────────────────────────────
